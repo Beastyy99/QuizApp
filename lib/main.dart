@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quizzler/questions.dart';
-// import 'quiz_brain.dart';
+import 'quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
-// QuizBrain quizBrain = QuizBrain();
+QuizBrain quizBrain = QuizBrain();
 
 void main() => runApp(Quizzler());
 
@@ -10,6 +11,7 @@ class Quizzler extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.grey.shade900,
         body: SafeArea(
@@ -30,21 +32,52 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   List<Widget> scoreKeeper = [];
-  // List<String> questions = [
-  //   'You can lead a cow down stairs but not up stairs.',
-  //   'Approximately one quarter of human bones are in the feet.',
-  //   'A slug\'s blood is green.'
-  // ];
-  //
-  // List<bool> answers = [false, true, true];
-  List<Question> questionBank = [
-    Question('You can lead a cow down stairs but not up stairs.', false),
-    Question('Approximately one quarter of human bones are in the feet.', true),
-    Question('A slug\'s blood is green.', true)
-  ];
-  int questionNumber = 0;
+  void correctAnswer(bool userPickedAnswer) {
+    bool correctAnswer = quizBrain.questionAnswer();
+    bool lastQuestion = quizBrain.isFinished();
+    setState(() {
+      if (lastQuestion == true) {
+        Alert(
+          context: context,
+          type: AlertType.error,
+          title: "QUIZ FINISHED",
+          desc: "This is the end of the quiz",
+          buttons: [
+            DialogButton(
+              child: Text(
+                "RESTART",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                quizBrain.reset();
+                scoreKeeper = [];
+              },
+              width: 120,
+            )
+          ],
+        ).show();
+      } else {
+        if (correctAnswer == userPickedAnswer) {
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          scoreKeeper.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
+        quizBrain.nextQuestion();
+      }
+    });
+  }
+
+  Question questionSrc;
   @override
   Widget build(BuildContext context) {
+    // questionSrc = quizBrain.questionText(questionNumber);
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,8 +87,8 @@ class _QuizPageState extends State<QuizPage> {
           child: Padding(
             padding: EdgeInsets.all(10.0),
             child: Center(
-              child: Text(
-                questionBank[questionNumber].questions,
+              child: new Text(
+                quizBrain.questionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -79,15 +112,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                bool correctAnswer = questionBank[questionNumber].answers;
-                if (correctAnswer == true) {
-                  print('user got it right');
-                } else {
-                  print('user got it wrong');
-                }
-                setState(() {
-                  questionNumber++;
-                });
+                correctAnswer(true);
                 //The user picked true.
               },
             ),
@@ -107,15 +132,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                bool correctAnswer = questionBank[questionNumber].answers;
-                if (correctAnswer == false) {
-                  print('user got it right');
-                } else {
-                  print('user got it wrong');
-                }
-                setState(() {
-                  questionNumber++;
-                });
+                correctAnswer(false);
                 //The user picked false.
               },
             ),
@@ -132,3 +149,17 @@ question1: 'You can lead a cow down stairs but not up stairs.', false,
 question2: 'Approximately one quarter of human bones are in the feet.', true,
 question3: 'A slug\'s blood is green.', true,
 */
+// List<String> questions = [
+//   'You can lead a cow down stairs but not up stairs.',
+//   'Approximately one quarter of human bones are in the feet.',
+//   'A slug\'s blood is green.'
+// ];
+//
+// List<bool> answers = [false, true, true];
+// List<Question> questionBank = [
+//   Question(q: 'You can lead a cow down stairs but not up stairs.', a: false),
+//   Question(
+//       q: 'Approximately one quarter of human bones are in the feet.',
+//       a: true),
+//   Question(q: 'A slug\'s blood is green.', a: true)
+// ];
